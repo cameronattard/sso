@@ -124,7 +124,14 @@ func (p *SingleFlightProvider) ValidateGroupMembership(email string, allowedGrou
 	sort.Strings(allowedGroups)
 	response, err := p.do("ValidateGroupMembership", fmt.Sprintf("%s:%s", email, strings.Join(allowedGroups, ",")),
 		func() (interface{}, error) {
-			return p.provider.ValidateGroupMembership(email, allowedGroups, accessToken)
+			switch v := p.provider.(type) {
+			case *GoogleProvider:
+				return v.ValidateGroupMembership(email, allowedGroups, accessToken)
+			case *OktaProvider:
+				return v.GroupsCache.ValidateGroupMembership(email, allowedGroups, accessToken)
+			default:
+				return nil, nil
+			}
 		})
 	if err != nil {
 		return nil, err

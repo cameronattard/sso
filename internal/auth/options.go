@@ -301,6 +301,8 @@ func newProvider(o *Options) (providers.Provider, error) {
 		if err != nil {
 			return nil, err
 		}
+		tags := []string{"provider:okta"}
+		oktaProvider.GroupsCache = providers.NewLocalCache(oktaProvider, o.GroupsCacheRefreshTTL, oktaProvider.StatsdClient, tags)
 		singleFlightProvider = providers.NewSingleFlightProvider(oktaProvider)
 	default:
 		return nil, fmt.Errorf("unimplemented provider: %q", o.Provider)
@@ -336,6 +338,8 @@ func AssignStatsdClient(opts *Options) func(*Authenticator) error {
 		proxy.StatsdClient = StatsdClient
 		switch v := proxy.provider.(type) {
 		case *providers.GoogleProvider:
+			v.SetStatsdClient(StatsdClient)
+		case *providers.OktaProvider:
 			v.SetStatsdClient(StatsdClient)
 		case *providers.SingleFlightProvider:
 			v.AssignStatsdClient(StatsdClient)
