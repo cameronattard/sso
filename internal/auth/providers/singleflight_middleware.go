@@ -20,8 +20,10 @@ var (
 )
 
 // ErrUnexpectedReturnType is an error for an unexpected return type
+// ErrUnknownIdentityProvider is for when an unknown Identity Provider is given.
 var (
-	ErrUnexpectedReturnType = errors.New("received unexpected return type from single flight func call")
+	ErrUnexpectedReturnType    = errors.New("received unexpected return type from single flight func call")
+	ErrUnknownIdentityProvider = errors.New("singleflight: unknown identity provider")
 )
 
 // SingleFlightProvider middleware provider that multiple requests for the same object
@@ -130,7 +132,7 @@ func (p *SingleFlightProvider) ValidateGroupMembership(email string, allowedGrou
 			case *OktaProvider:
 				return v.GroupsCache.ValidateGroupMembership(email, allowedGroups, accessToken)
 			default:
-				return nil, nil
+				return nil, ErrUnknownIdentityProvider
 			}
 		})
 	if err != nil {
