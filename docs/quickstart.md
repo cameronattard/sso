@@ -24,23 +24,50 @@ the repo:
 
     cd sso/quickstart
 
-## 2. Create Google OAuth Credentials
+## 2. Configure Provider Credentials
+Depending on which provider you would like to use SSO with (Google/Okta) follow the relevant
+section below:
+
+### Google
 
 Follow steps 1 and 2 of the [Google Provider Setup](google_provider_setup.md)
 documentation.
 
 **⚡️ Note:** Use `http://sso-auth.localtest.me/oauth2/callback` as the
-**Authorized redirect URI** in Step 2.
+**Authorized redirect URI** in step 2.
 
 At the end of step 2, you will have a client ID and client secret. Create a new
 file called `env` with those values, like so:
 
-    CLIENT_ID=<random id>.apps.googleusercontent.com
-    CLIENT_SECRET=<secret value>
+    CLIENT_ID=<client id value>.apps.googleusercontent.com
+    CLIENT_SECRET=<client secret value>
 
 This file will be used to configure `sso-auth` in the example deployment to
 allow you to log to **sso**.
 
+### Okta
+
+Once you've completed the [Okta Provider Setup](okta_provider_setup.md) (alternatively, you
+can skip to and complete Section 3 of the [Okta Provider Setup](okta_provider_setup.md) instead).
+
+**⚡️ Note:** Use `http://sso-auth.localtest.me` as the
+**Authorized redirect URI** in step 3.
+
+At the end of step 3 you will be given a client ID and client secret. Create a new
+file called `env` with those values, like so:
+
+    CLIENT_ID=<client id value>
+    CLIENT_SECRET=<client secret value>
+
+As well as these, you also need to make sure **sso** knows to use the 'Okta' provider
+(Okta is not the default provider) and provide your Okta organisation URL (for example, 'sso-test.okta.com')
+Add the below lines into the `env` file you just created:
+
+    PROVIDER="okta"
+    OKTA_ORG_URL=<organisation url>
+
+This file will be used to configure `sso-auth` in the example deployment to
+allow you to log to **sso**.
 
 ## 3. Create example `sso` deployment
 
