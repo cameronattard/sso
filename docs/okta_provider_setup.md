@@ -74,4 +74,4 @@ You'll add these credentials to  `quickstart/env`  as instructed in  [the guide]
 Lastly, any users that will be authenticating through SSO need to be assigned to this Application. They can be assigned via the 'People' assignment
 and/or the 'Groups' assignment within the Application settings itself.
 
-**Note**: Only groups that are assigned to this app will be returned along with the `groups` scope/claim.
+**⚡️ Note**: Only groups that are assigned to this app will be returned along with the `groups` scope/claim.
