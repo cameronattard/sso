@@ -69,7 +69,9 @@ Copy both of these values to a safe and secure location - these are required to 
 **⚡️Note:**  If you're following the  [Quickstart guide](https://github.com/buzzfeed/sso/blob/master/docs/quickstart.md),  **stop here!**
 You'll add these credentials to  `quickstart/env`  as instructed in  [the guide](https://github.com/buzzfeed/sso/blob/master/docs/quickstart.md).
 
-Now we need to assign relevant users and groups to the Application. Make sure that any users that will be authenticating through `sso` are assigned here,
-either through 'People' assignment, or 'Groups' assignment.
+### Assignments
 
-*Only groups that are assigned to this app will be returned along with the `groups` scope/claim*
+Lastly, any users that will be authenticating through SSO need to be assigned to this Application. They can be assigned via the "People" assignment
+*or* the "Groups" assignment within the Application settings itself.
+
+**Note**: Only groups that are assigned to this app will be returned along with the `groups` scope/claim.
