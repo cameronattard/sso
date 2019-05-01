@@ -93,7 +93,9 @@ You should see 5 services running, all in the "Up" state:
 ## 4. Explore your newly secured services!
 
 Visit http://hello-world.sso.localtest.me in your web browser.  Log in using
-any Google account.
+any Google account. If you are using Okta as your SSO provider, log in using
+any Okta account that has been correctly assigned to the Application (this
+should have been done while setting up the Okta provider)
 
 Now visit http://httpbin.sso.localtest.me, and see that you are automagically
 logged in!  (To verify that **sso** is actually working here, feel free to
