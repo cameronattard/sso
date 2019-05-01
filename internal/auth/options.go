@@ -302,8 +302,9 @@ func newProvider(o *Options) (providers.Provider, error) {
 			return nil, err
 		}
 		tags := []string{"provider:okta"}
-		oktaProvider.GroupsCache = providers.NewLocalCache(oktaProvider, o.GroupsCacheRefreshTTL, oktaProvider.StatsdClient, tags)
-		singleFlightProvider = providers.NewSingleFlightProvider(oktaProvider)
+
+		groupsCache := providers.NewLocalCache(oktaProvider, o.GroupsCacheRefreshTTL, oktaProvider.StatsdClient, tags)
+		singleFlightProvider = providers.NewSingleFlightProvider(groupsCache)
 	default:
 		return nil, fmt.Errorf("unimplemented provider: %q", o.Provider)
 	}

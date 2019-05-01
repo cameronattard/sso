@@ -66,7 +66,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	ttl := time.Millisecond * 10
 	statsdClient, _ := statsd.New("127.0.0.1:8125")
 	tags := []string{"tags:test"}
-	provider.GroupsCache = NewLocalCache(provider, ttl, statsdClient, tags)
+	GroupsCache := NewLocalCache(provider, ttl, statsdClient, tags)
 
 	// The below cached `MatchedGroups` should not be returned because the list of
 	// allowed groups we pass in are different to the cached `AllowedGroups`. It should instead
@@ -78,7 +78,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 			MatchedGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
 		},
 	}
-	_, err = provider.GroupsCache.cache.Set(cachedData)
+	_, err = GroupsCache.cache.Set(cachedData)
 	if err != nil {
 		t.Fatalf("did not expect an error, got %s", err)
 	}
@@ -89,7 +89,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	email := "email@test.com"
 	actualAllowedGroups := []string{"allowedGroup1"}
 	accessToken := "123456"
-	actualMatchedGroups, err := provider.GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
+	actualMatchedGroups, err := GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
 	if err != nil {
 		t.Fatalf("unexpected error caused while validating group membership: %q", err)
 	}
@@ -113,7 +113,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	provider.ProfileURL, server = newTestProviderServer(body, http.StatusOK)
 	defer server.Close()
 
-	actualMatchedGroups, err = provider.GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
+	actualMatchedGroups, err = GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
 	if err != nil {
 		t.Fatalf("unexpected error caused while validating group membership: %q", err)
 	}
@@ -135,7 +135,7 @@ func TestCachedGroupsAreUsed(t *testing.T) {
 	ttl := time.Millisecond * 10
 	statsdClient, _ := statsd.New("127.0.0.1:8125")
 	tags := []string{"tags:test"}
-	provider.GroupsCache = NewLocalCache(provider, ttl, statsdClient, tags)
+	GroupsCache := NewLocalCache(provider, ttl, statsdClient, tags)
 
 	// In this case, the below `MatchedGroups` should be returned because the list of
 	// allowed groups are pass in match them.
@@ -146,7 +146,7 @@ func TestCachedGroupsAreUsed(t *testing.T) {
 			MatchedGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
 		},
 	}
-	_, err := provider.GroupsCache.cache.Set(cachedData)
+	_, err := GroupsCache.cache.Set(cachedData)
 	if err != nil {
 		t.Fatalf("did not expect an error, got %s", err)
 	}
@@ -158,7 +158,7 @@ func TestCachedGroupsAreUsed(t *testing.T) {
 	email := "email@test.com"
 	actualAllowedGroups := []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"}
 	accessToken := "123456"
-	actualMatchedGroups, err := provider.GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
+	actualMatchedGroups, err := GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
 	if err != nil {
 		t.Fatalf("unexpected error caused while validating group membership: %q", err)
 	}

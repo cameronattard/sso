@@ -22,7 +22,6 @@ type OktaProvider struct {
 	*ProviderData
 	StatsdClient *statsd.Client
 	cb           *circuit.Breaker
-	GroupsCache  *GroupCache
 }
 
 type GetUserProfileResponse struct {
