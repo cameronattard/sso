@@ -23,17 +23,22 @@ type Cache interface {
 }
 
 type GroupCache struct {
-	metrics  *statsd.Client
-	provider Provider
-	cache    *groups.LocalCache
+	StatsdClient *statsd.Client
+	provider     Provider
+	cache        *groups.LocalCache
 }
 
 func NewLocalCache(provider Provider, ttl time.Duration, statsdClient *statsd.Client, tags []string) *GroupCache {
 	return &GroupCache{
-		metrics:  statsdClient,
-		provider: provider,
-		cache:    groups.NewLocalCache(ttl, statsdClient, tags),
+		StatsdClient: statsdClient,
+		provider:     provider,
+		cache:        groups.NewLocalCache(ttl, statsdClient, tags),
 	}
+}
+
+func (p *GroupCache) SetStatsdClient(StatsdClient *statsd.Client) {
+	p.StatsdClient = StatsdClient
+	p.provider.SetStatsdClient(StatsdClient)
 }
 
 func (p *GroupCache) Data() *ProviderData {
@@ -66,9 +71,19 @@ func (p *GroupCache) ValidateGroupMembership(email string, allowedGroups []strin
 	// return the cached groups
 	if reflect.DeepEqual(groupMembership.UserGroupData.AllowedGroups, allowedGroups) {
 		if len(groupMembership.UserGroupData.MatchedGroups) > 0 {
+			p.StatsdClient.Incr("provider.groupcache",
+				[]string{
+					"action:ValidateGroupMembership",
+					"cache:hit",
+				}, 1.0)
 			return groupMembership.UserGroupData.MatchedGroups, nil
 		}
 	}
+	p.StatsdClient.Incr("provider.groupcache",
+		[]string{
+			"action:ValidateGroupMembership",
+			"cache:miss",
+		}, 1.0)
 
 	// If the user's group membership is not in cache, or the passed list of 'AllowedGroups'
 	// differs from the cached entry, call and return the groups from p.Provider.ValidateGroupMembership.

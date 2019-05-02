@@ -337,16 +337,7 @@ func AssignStatsdClient(opts *Options) func(*Authenticator) error {
 			"statsd client is running")
 
 		proxy.StatsdClient = StatsdClient
-		switch v := proxy.provider.(type) {
-		case *providers.GoogleProvider:
-			v.SetStatsdClient(StatsdClient)
-		case *providers.OktaProvider:
-			v.SetStatsdClient(StatsdClient)
-		case *providers.SingleFlightProvider:
-			v.AssignStatsdClient(StatsdClient)
-		default:
-			logger.Info("provider does not have statsd client")
-		}
+		proxy.provider.SetStatsdClient(StatsdClient)
 		return nil
 	}
 }
