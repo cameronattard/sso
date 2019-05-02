@@ -165,5 +165,6 @@ func TestCachedGroupsAreUsed(t *testing.T) {
 	if !reflect.DeepEqual(actualMatchedGroups, actualAllowedGroups) {
 		t.Logf("expected groups to match: %q", actualAllowedGroups)
 		t.Logf("  actual groups returned: %q", actualMatchedGroups)
+		t.Fatalf("unexpected groups returned")
 	}
 }

@@ -30,14 +30,16 @@ func TestNotAvailableAfterTTL(t *testing.T) {
 
 	// Check the cached entry can be retrieved from the cache.
 	if data, _ := cache.Get(testData.Key); !reflect.DeepEqual(data, testData) {
-		t.Errorf("expected data to be '%+v', was '%+v'", testData, data)
+		t.Logf("     expected data to be '%+v'", testData)
+		t.Logf("actual data returned was '%+v'", data)
+		t.Fatalf("unexpected data returned")
 	}
 
 	// If we wait 10ms (or lets say, 50 for good luck), it will have been removed
 	time.Sleep(time.Millisecond * 50)
 
 	if _, found := cache.get(testData.Key); found {
-		t.Errorf("expected key not to be have been found after the TTL expired")
+		t.Fatalf("expected key not to be have been found after the TTL expired")
 	}
 }
 
@@ -60,13 +62,15 @@ func TestNotAvailableAfterPurge(t *testing.T) {
 
 	// Check the cached entry can be retrieved from the cache.
 	if data, _ := cache.Get(testData.Key); !reflect.DeepEqual(data, testData) {
-		t.Errorf("expected data to be '%+v', was '%+v'", testData, data)
+		t.Logf("     expected data to be '%+v'", testData)
+		t.Logf("actual data returned was '%+v'", data)
+		t.Fatalf("unexpected data returned")
 	}
 
 	cache.Purge([]string{testData.Key})
 
 	// Purge should have removed the entry, despite being within the cache TTL
 	if _, found := cache.get(testData.Key); found {
-		t.Errorf("expected key not to be have been found after purging")
+		t.Fatalf("expected key not to be have been found after purging")
 	}
 }
