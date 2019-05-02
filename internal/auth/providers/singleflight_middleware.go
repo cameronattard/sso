@@ -59,7 +59,7 @@ func (p *SingleFlightProvider) do(endpoint, key string, fn func() (interface{}, 
 	return resp, err
 }
 
-// SetStatsdClient wraps the provider's SetStatsdClient function.
+// SetStatsdClient calls the provider's SetStatsdClient function.
 func (p *SingleFlightProvider) SetStatsdClient(StatsdClient *statsd.Client) {
 	p.StatsdClient = StatsdClient
 	p.provider.SetStatsdClient(StatsdClient)

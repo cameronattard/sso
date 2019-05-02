@@ -17,17 +17,20 @@ var (
 )
 
 type Cache interface {
-	Get(keys string)
-	Set(entries []string)
-	Purge(keys []string)
+	Get(keys string) (groups.Entry, error)
+	Set(entries []string) (groups.Entry, error)
+	Purge(keys []string) error
 }
 
+// GroupCache is designed to act as a provider while wrapping subsequent provider's functions,
+// while also offering a caching mechanism (specifically used for group caching at the moment).
 type GroupCache struct {
 	StatsdClient *statsd.Client
 	provider     Provider
 	cache        *groups.LocalCache
 }
 
+// NewLocalCache returns a new GroupCache (which includes a LocalCache from the groups package)
 func NewLocalCache(provider Provider, ttl time.Duration, statsdClient *statsd.Client, tags []string) *GroupCache {
 	return &GroupCache{
 		StatsdClient: statsdClient,
@@ -36,27 +39,33 @@ func NewLocalCache(provider Provider, ttl time.Duration, statsdClient *statsd.Cl
 	}
 }
 
+// SetStatsdClient calls the provider's SetStatsdClient function.
 func (p *GroupCache) SetStatsdClient(StatsdClient *statsd.Client) {
 	p.StatsdClient = StatsdClient
 	p.provider.SetStatsdClient(StatsdClient)
 }
 
+// Data returns the provider Data
 func (p *GroupCache) Data() *ProviderData {
 	return p.provider.Data()
 }
 
+// Redeem wraps the provider's Redeem function
 func (p *GroupCache) Redeem(redirectURL, code string) (*sessions.SessionState, error) {
 	return p.provider.Redeem(redirectURL, code)
 }
 
+// ValidateSessionState wraps the provider's ValidateSessionState function.
 func (p *GroupCache) ValidateSessionState(s *sessions.SessionState) bool {
 	return p.provider.ValidateSessionState(s)
 }
 
+// GetSignInURL wraps the provider's GetSignInURL function.
 func (p *GroupCache) GetSignInURL(redirectURI, finalRedirect string) string {
 	return p.provider.GetSignInURL(redirectURI, finalRedirect)
 }
 
+// RefreshSessionIfNeeded wraps the provider's RefreshSessionIfNeeded function.
 func (p *GroupCache) RefreshSessionIfNeeded(s *sessions.SessionState) (bool, error) {
 	return p.provider.RefreshSessionIfNeeded(s)
 }
@@ -108,14 +117,17 @@ func (p *GroupCache) ValidateGroupMembership(email string, allowedGroups []strin
 	return validGroups, nil
 }
 
+// Revoke wraps the provider's Revoke function.
 func (p *GroupCache) Revoke(s *sessions.SessionState) error {
 	return p.provider.Revoke(s)
 }
 
+// RefreshAccessToken wraps the provider's RefreshAccessToken function.
 func (p *GroupCache) RefreshAccessToken(refreshToken string) (string, time.Duration, error) {
 	return p.provider.RefreshAccessToken(refreshToken)
 }
 
+// Stop calls the providers stop function.
 func (p *GroupCache) Stop() {
 	p.provider.Stop()
 }
