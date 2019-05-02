@@ -20,7 +20,6 @@ var (
 )
 
 // ErrUnexpectedReturnType is an error for an unexpected return type
-// ErrUnknownIdentityProvider is for when an unknown Identity Provider is given.
 var (
 	ErrUnexpectedReturnType = errors.New("received unexpected return type from single flight func call")
 )

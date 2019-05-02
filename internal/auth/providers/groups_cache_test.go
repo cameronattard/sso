@@ -54,7 +54,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	//set up the test server
 	provider := newTestProvider(nil, t)
 	resp := serverResp{
-		Groups: []string{"allowedGroup1"},
+		Groups: []string{"allowedGroup1", "allowedGroup2"},
 	}
 	body, err := json.Marshal(resp)
 	testutil.Equal(t, nil, err)
@@ -74,7 +74,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	cachedData := groups.Entry{
 		Key: "email@test.com",
 		UserGroupData: groups.UserGroupData{
-			AllowedGroups: []string{"allowedGroup1", "allowedGroup2"},
+			AllowedGroups: []string{"allowedGroup1"},
 			MatchedGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
 		},
 	}
@@ -87,7 +87,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	// cache was skipped because the allowedGroups that we pass in are different to
 	// those stored in the cache. This is the outcome we expect in this test.
 	email := "email@test.com"
-	actualAllowedGroups := []string{"allowedGroup1"}
+	actualAllowedGroups := []string{"allowedGroup2", "allowedGroup1"}
 	accessToken := "123456"
 	actualMatchedGroups, err := GroupsCache.ValidateGroupMembership(email, actualAllowedGroups, accessToken)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 
 	// We want to test that the groups returned are *now* cached, so we change the resp
 	// that the test server will send. If it matches this new response, we know the cache
-	// was skipped.
+	// was skipped, which we do not expect to happen.
 	resp = serverResp{
 		Groups: []string{"allowedGroup1", "allowedGroup2"},
 	}
