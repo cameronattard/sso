@@ -19,7 +19,7 @@ var (
 type Cache interface {
 	Get(key groups.CacheKey) (groups.CacheEntry, bool)
 	Set(key groups.CacheKey, val groups.CacheEntry)
-	Purge(keys groups.CacheKey)
+	Purge(key groups.CacheKey)
 }
 
 // GroupCache is designed to act as a provider while wrapping subsequent provider's functions,
