@@ -81,11 +81,13 @@ func (lc *LocalCache) Get(key CacheKey) (CacheEntry, bool) {
 
 // Set will set an entry within the current cache
 func (lc *LocalCache) Set(key CacheKey, entry CacheEntry) {
+	lc.metrics.Incr("localcache.set", lc.tags, 1.0)
 	lc.set(key, entry)
 }
 
 // Purge will remove a set of keys from the local cache map
 func (lc *LocalCache) Purge(key CacheKey) error {
+	lc.metrics.Incr("localcache.purge", lc.tags, 1.0)
 	lc.localCacheData.Delete(key)
 	return nil
 }
