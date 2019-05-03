@@ -86,8 +86,7 @@ func (lc *LocalCache) Set(key CacheKey, entry CacheEntry) {
 }
 
 // Purge will remove a set of keys from the local cache map
-func (lc *LocalCache) Purge(key CacheKey) error {
+func (lc *LocalCache) Purge(key CacheKey) {
 	lc.metrics.Incr("localcache.purge", lc.tags, 1.0)
 	lc.localCacheData.Delete(key)
-	return nil
 }

@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"sort"
 	"strings"
 	"time"
 
@@ -73,6 +74,7 @@ func (p *GroupCache) RefreshSessionIfNeeded(s *sessions.SessionState) (bool, err
 func (p *GroupCache) ValidateGroupMembership(email string, allowedGroups []string, accessToken string) ([]string, error) {
 	// Create a cache key and check to see if it's in the cache. If not, call the provider's
 	// ValidateGroupMembership function and cache the result.
+	sort.Strings(allowedGroups)
 	key := groups.CacheKey{
 		Email:         email,
 		AllowedGroups: strings.Join(allowedGroups, ","),

@@ -66,7 +66,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	ttl := time.Millisecond * 10
 	statsdClient, _ := statsd.New("127.0.0.1:8125")
 	tags := []string{"tags:test"}
-	GroupsCache := NewLocalCache(provider, ttl, statsdClient, tags)
+	GroupsCache := NewGroupCache(provider, ttl, statsdClient, tags)
 
 	// The below cached `MatchedGroups` should not be returned because the list of
 	// allowed groups we pass in are different to the cached `AllowedGroups`. It should instead
@@ -132,7 +132,7 @@ func TestCachedGroupsAreUsed(t *testing.T) {
 	ttl := time.Millisecond * 10
 	statsdClient, _ := statsd.New("127.0.0.1:8125")
 	tags := []string{"tags:test"}
-	GroupsCache := NewLocalCache(provider, ttl, statsdClient, tags)
+	GroupsCache := NewGroupCache(provider, ttl, statsdClient, tags)
 
 	// In this case, the below `MatchedGroups` should be returned because the list of
 	// allowed groups are pass in match them.
