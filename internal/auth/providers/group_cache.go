@@ -1,8 +1,7 @@
 package providers
 
 import (
-	"reflect"
-	"sort"
+	"strings"
 	"time"
 
 	"github.com/buzzfeed/sso/internal/pkg/groups"
@@ -17,9 +16,9 @@ var (
 )
 
 type Cache interface {
-	Get(keys string) (groups.Entry, error)
-	Set(entries []string) (groups.Entry, error)
-	Purge(keys []string) error
+	Get(key groups.CacheKey) (groups.CacheEntry, bool)
+	Set(key groups.CacheKey, val groups.CacheEntry)
+	Purge(keys groups.CacheKey)
 }
 
 // GroupCache is designed to act as a provider while wrapping subsequent provider's functions,
@@ -72,48 +71,39 @@ func (p *GroupCache) RefreshSessionIfNeeded(s *sessions.SessionState) (bool, err
 
 // ValidateGroupMembership wraps the provider's ValidateGroupMembership around calls to check local cache for group membership information.
 func (p *GroupCache) ValidateGroupMembership(email string, allowedGroups []string, accessToken string) ([]string, error) {
-	groupMembership, err := p.cache.Get(email)
-	if err != nil {
-		return nil, err
+	// Create a cache key and check to see if it's in the cache. If not, call the provider's
+	// ValidateGroupMembership function and cache the result.
+	key := groups.CacheKey{
+		Email:         email,
+		AllowedGroups: strings.Join(allowedGroups, ","),
 	}
-	// If the passed in allowed groups match the cached version, and the length of the cached 'matched' groups are greater than zero,
-	// return the cached groups
-	if reflect.DeepEqual(groupMembership.UserGroupData.AllowedGroups, allowedGroups) {
-		if len(groupMembership.UserGroupData.MatchedGroups) > 0 {
-			p.StatsdClient.Incr("provider.groupcache",
-				[]string{
-					"action:ValidateGroupMembership",
-					"cache:hit",
-				}, 1.0)
-			return groupMembership.UserGroupData.MatchedGroups, nil
-		}
+
+	val, ok := p.cache.Get(key)
+	if ok {
+		p.StatsdClient.Incr("provider.groupcache",
+			[]string{
+				"action:ValidateGroupMembership",
+				"cache:hit",
+			}, 1.0)
+		return val.ValidGroups, nil
 	}
+
+	// The key isn't in the cache, so pass the call on to the subsequent provider
 	p.StatsdClient.Incr("provider.groupcache",
 		[]string{
 			"action:ValidateGroupMembership",
 			"cache:miss",
 		}, 1.0)
 
-	// If the user's group membership is not in cache, or the passed list of 'AllowedGroups'
-	// differs from the cached entry, call and return the groups from p.Provider.ValidateGroupMembership.
 	validGroups, err := p.provider.ValidateGroupMembership(email, allowedGroups, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create and cache an Entry and return the valid groups.
-	sort.Strings(allowedGroups)
-	sort.Strings(validGroups)
-	entry := groups.Entry{
-		Key: email,
-		UserGroupData: groups.UserGroupData{
-			AllowedGroups: allowedGroups,
-			MatchedGroups: validGroups,
-		},
+	entry := groups.CacheEntry{
+		ValidGroups: validGroups,
 	}
-	_, err = p.cache.Set(entry)
-	if err != nil {
-	}
+	p.cache.Set(key, entry)
 	return validGroups, nil
 }
 

@@ -71,17 +71,14 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	// The below cached `MatchedGroups` should not be returned because the list of
 	// allowed groups we pass in are different to the cached `AllowedGroups`. It should instead
 	// make a call to the Provider (our test server).
-	cachedData := groups.Entry{
-		Key: "email@test.com",
-		UserGroupData: groups.UserGroupData{
-			AllowedGroups: []string{"allowedGroup1"},
-			MatchedGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
-		},
+	cacheKey := groups.CacheKey{
+		Email:         "email@test.com",
+		AllowedGroups: "allowedGroup1",
 	}
-	_, err = GroupsCache.cache.Set(cachedData)
-	if err != nil {
-		t.Fatalf("did not expect an error, got %s", err)
+	cacheData := groups.CacheEntry{
+		ValidGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
 	}
+	GroupsCache.cache.Set(cacheKey, cacheData)
 
 	// If the groups stored in the `serverResp` struct are returned, it means the
 	// cache was skipped because the allowedGroups that we pass in are different to
@@ -96,7 +93,7 @@ func TestCachedGroupsAreNotUsed(t *testing.T) {
 	if !reflect.DeepEqual(actualMatchedGroups, actualAllowedGroups) {
 		t.Logf("expected groups to match: %q", actualAllowedGroups)
 		t.Logf("  actual groups returned: %q", actualMatchedGroups)
-		if reflect.DeepEqual(actualMatchedGroups, cachedData.UserGroupData.MatchedGroups) {
+		if reflect.DeepEqual(actualMatchedGroups, cacheData.ValidGroups) {
 			t.Fatalf("It looks like the groups in the cache were returned. In this case, the cache should have been skipped")
 		}
 		t.Fatalf("Unexpected groups returned.")
@@ -139,17 +136,14 @@ func TestCachedGroupsAreUsed(t *testing.T) {
 
 	// In this case, the below `MatchedGroups` should be returned because the list of
 	// allowed groups are pass in match them.
-	cachedData := groups.Entry{
-		Key: "email@test.com",
-		UserGroupData: groups.UserGroupData{
-			AllowedGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
-			MatchedGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
-		},
+	cacheKey := groups.CacheKey{
+		Email:         "email@test.com",
+		AllowedGroups: "allowedGroup1,allowedGroup2,allowedGroup3",
 	}
-	_, err := GroupsCache.cache.Set(cachedData)
-	if err != nil {
-		t.Fatalf("did not expect an error, got %s", err)
+	cacheData := groups.CacheEntry{
+		ValidGroups: []string{"allowedGroup1", "allowedGroup2", "allowedGroup3"},
 	}
+	GroupsCache.cache.Set(cacheKey, cacheData)
 
 	// We haven't set up a test server in this case because we pass in a list of allowed groups
 	// that match the allowed groups in the cache, so the cached matched groups should be used

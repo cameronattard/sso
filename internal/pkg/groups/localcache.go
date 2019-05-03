@@ -29,83 +29,63 @@ type LocalCache struct {
 
 	// Cache data
 	localCacheData *syncmap.Map
-	Entry
 }
 
-// Entry and UserGroupData defines a set of key:value
-// pairs to be placed into the cache
-type Entry struct {
-	Key string
-	UserGroupData
+// Cachekey defines the key used to store the data in the cache.
+type CacheKey struct {
+	Email         string
+	AllowedGroups string
 }
 
-type UserGroupData struct {
-	AllowedGroups []string
-	MatchedGroups []string
+// CacheEntry defines the data we want to store in the cache.
+type CacheEntry struct {
+	ValidGroups []string
 }
 
 // get will attempt to retrieve an entry from the cache at the given key
-func (lc *LocalCache) get(key string) (UserGroupData, bool) {
-	var emptycache UserGroupData
-	data, found := lc.localCacheData.Load(key)
-	if data != nil {
-		return data.(UserGroupData), found
+func (lc *LocalCache) get(key CacheKey) (CacheEntry, bool) {
+	val, ok := lc.localCacheData.Load(key)
+	if ok {
+		return val.(CacheEntry), ok
 	}
 
-	return emptycache, false
+	return CacheEntry{}, false
 }
 
 // set will attempt to set an entry in the cache to a given key
 // for the prescribed TTL
-func (lc *LocalCache) set(key string, data UserGroupData) error {
+func (lc *LocalCache) set(key CacheKey, data CacheEntry) {
 	lc.localCacheData.Store(key, data)
 
 	// Spawn the TTL cleanup goroutine if a TTL is set
 	if lc.ttl > 0 {
-		go func(key string) {
+		go func(key CacheKey) {
 			<-time.After(lc.ttl)
-			lc.Purge([]string{key})
+			lc.Purge(key)
 		}(key)
 	}
-	return nil
 }
 
 // Get retrieves a key from a local cache. If found, it will create and return an
 // 'Entry' using the returned values. If not found, it will return an empty 'Entry'
-func (lc *LocalCache) Get(key string) (Entry, error) {
-	cached, found := lc.get(key)
-	entry := Entry{}
-	if found {
+func (lc *LocalCache) Get(key CacheKey) (CacheEntry, bool) {
+	val, ok := lc.get(key)
+	if ok {
 		lc.metrics.Incr("localcache.hit", lc.tags, 1.0)
-		entry = Entry{
-			Key: key,
-			UserGroupData: UserGroupData{
-				AllowedGroups: cached.AllowedGroups,
-				MatchedGroups: cached.MatchedGroups,
-			},
-		}
+		return val, ok
 	}
-	lc.metrics.Incr("localcache.miss", lc.tags, 1.0)
 
-	return entry, nil
+	lc.metrics.Incr("localcache.miss", lc.tags, 1.0)
+	return CacheEntry{}, false
 }
 
 // Set will set an entry within the current cache
-func (lc *LocalCache) Set(entry Entry) (Entry, error) {
-	if err := lc.set(entry.Key, entry.UserGroupData); err != nil {
-		var emptycache Entry
-		lc.metrics.Incr("localcache.set.error", lc.tags, 1.0)
-		return emptycache, err
-	}
-	lc.metrics.Incr("localcache.set.success", lc.tags, 1.0)
-	return entry, nil
+func (lc *LocalCache) Set(key CacheKey, entry CacheEntry) {
+	lc.set(key, entry)
 }
 
 // Purge will remove a set of keys from the local cache map
-func (lc *LocalCache) Purge(keys []string) error {
-	for _, key := range keys {
-		lc.localCacheData.Delete(key)
-		//metrics here? https://godoc.org/golang.org/x/sync/syncmap#Map.Delete
-	}
+func (lc *LocalCache) Purge(key CacheKey) error {
+	lc.localCacheData.Delete(key)
 	return nil
 }
