@@ -24,24 +24,24 @@ type Cache interface {
 // GroupCache is designed to act as a provider while wrapping subsequent provider's functions,
 // while also offering a caching mechanism (specifically used for group caching at the moment).
 type GroupCache struct {
-	StatsdClient *statsd.Client
+	statsdClient *statsd.Client
 	provider     Provider
-	cache        *groups.LocalCache
+	cache        Cache
 }
 
-// NewLocalCache returns a new GroupCache (which includes a LocalCache from the groups package)
-func NewLocalCache(provider Provider, ttl time.Duration, statsdClient *statsd.Client, tags []string) *GroupCache {
+// NewGroupCache returns a new GroupCache (which includes a LocalCache from the groups package)
+func NewGroupCache(provider Provider, ttl time.Duration, statsdClient *statsd.Client, tags []string) *GroupCache {
 	return &GroupCache{
-		StatsdClient: statsdClient,
+		statsdClient: statsdClient,
 		provider:     provider,
 		cache:        groups.NewLocalCache(ttl, statsdClient, tags),
 	}
 }
 
 // SetStatsdClient calls the provider's SetStatsdClient function.
-func (p *GroupCache) SetStatsdClient(StatsdClient *statsd.Client) {
-	p.StatsdClient = StatsdClient
-	p.provider.SetStatsdClient(StatsdClient)
+func (p *GroupCache) SetStatsdClient(statsdClient *statsd.Client) {
+	p.statsdClient = statsdClient
+	p.provider.SetStatsdClient(statsdClient)
 }
 
 // Data returns the provider Data
@@ -80,7 +80,7 @@ func (p *GroupCache) ValidateGroupMembership(email string, allowedGroups []strin
 
 	val, ok := p.cache.Get(key)
 	if ok {
-		p.StatsdClient.Incr("provider.groupcache",
+		p.statsdClient.Incr("provider.groupcache",
 			[]string{
 				"action:ValidateGroupMembership",
 				"cache:hit",
@@ -89,7 +89,7 @@ func (p *GroupCache) ValidateGroupMembership(email string, allowedGroups []strin
 	}
 
 	// The key isn't in the cache, so pass the call on to the subsequent provider
-	p.StatsdClient.Incr("provider.groupcache",
+	p.statsdClient.Incr("provider.groupcache",
 		[]string{
 			"action:ValidateGroupMembership",
 			"cache:miss",
